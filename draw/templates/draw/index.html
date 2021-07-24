@@ -25,7 +25,8 @@
     paper.setup(canvas);
     var tool = new paper.Tool();
     var path = new paper.Path();
-    var nColor = '#' + parseInt(Math.random() * 0xffffff).toString(16);
+    var nColor = Math.random();
+    console.log(nColor)
     var uid = Date.now() % 10000;
 
 
@@ -50,11 +51,11 @@
         if (!uidmap.has(otheruid)) {
             var newpath = new paper.Path();
             uidmap.set(otheruid, newpath);
-            newpath.strokeColor = received["nColor"];
+            newpath.strokeColor = "#" + parseInt(received["nColor"] * 0xffffff).toString(16);
          }
         var newpath = uidmap.get(otheruid);
         newpath.add(received);
-       
+
     }
 
     socket.onclose = function (e) {
