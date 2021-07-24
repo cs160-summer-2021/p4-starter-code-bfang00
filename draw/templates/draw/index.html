@@ -24,19 +24,10 @@
     var canvas = document.getElementById('myCanvas');
     paper.setup(canvas);
     var tool = new paper.Tool();
-    var path1 = new paper.Path();
-    path1.strokeColor = "blue";
-    var path2 = new paper.Path();
-    path2.strokeColor = "purple";
-    var path3 = new paper.Path();
-    path3.strokeColor = "orange";
+    var path = new paper.Path();
+    var nColor = '#' + parseInt(Math.random() * 0xffffff).toString(16);
     var uid = Date.now() % 10000;
-    var uidmap = {};
-    if (!(uid in uidmap)) {
-        uidmap[uid] = new paper.Path();
-        uidmap[uid].strokeColor = Math.floor(Math.random() * 16777215).toString(16);
-    }
-    path = uidmap[uid];
+
 
     // getting the URL (you may want to use for Exercise 3)
     var url = window.location.href;
@@ -45,31 +36,28 @@
         'ws://' + window.location.host + '/ws/draw');
 
     tool.onMouseMove = function (event) { //http://paperjs.org/reference/tool/ path examples
-        uidmap[uid].add(event.point);
-       // You may need to add code here if you want to pass any other information.
-       socket.send("{\"x\" : " + event.point.x + ", \"y\" : " + event.point.y + ", \"uid\" : " + uid + "}" );
+        path.add(event.point);
+        // You may need to add code here if you want to pass any other information.
+        socket.send("{\"x\" : " + event.point.x + ", \"y\" : " + event.point.y + ", \"uid\" : " + uid + ", \"nColor\" : " + nColor + "}");
     }
-
-    socket.onmessage = function(receivedMessage) {
+    var uidmap = new Map();
+    socket.onmessage = function (receivedMessage) {
         var received = JSON.parse(receivedMessage.data);
         console.log("Received: " + JSON.stringify(received));
         // You will probably want to add some code here to draw more lines.
-        var path1 = new paper.Path();
-        path1.strokeColor = "blue";
-        var path2 = new paper.Path();
-        path2.strokeColor = "purple";
-        var path3 = new paper.Path();
-        path3.strokeColor = "orange";
-        let paths = [path1, path2, path3];
-        num = 0;
-        if (!(uid in uidmap)) {
-            uidmap[uid] = paths[num];
-            num++;
-        }
-        uidmap[uid].add(received);
+        var otheruid = received["uid"];
+        var colors = ['red', 'blue', 'green', 'black', 'orange']
+        if (!uidmap.has(otheruid)) {
+            var newpath = new paper.Path();
+            uidmap.set(otheruid, newpath);
+            newpath.strokeColor = received["nColor"];
+         }
+        var newpath = uidmap.get(otheruid);
+        newpath.add(received);
+       
     }
 
-    socket.onclose = function(e) {
+    socket.onclose = function (e) {
         console.error('Chat socket closed unexpectedly');
     };
 
